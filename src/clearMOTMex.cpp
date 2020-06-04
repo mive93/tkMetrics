@@ -181,6 +181,7 @@ clearMotMexRes_t clearMotMex(std::vector<metrics::BoundingBox> gt, std::vector<m
 	std::vector<int> g(Fgt, 0); // gt count for each frame
 	std::vector<std::vector<double>> d(Fgt, std::vector<double>(Ngt, 0)); // all distances mapped to [0..1]
 	std::vector<std::vector<int>> allfalsepos(Fgt, std::vector<int>(Nst, 0));
+	std::vector<std::vector<int>> alltracked(Fgt, std::vector<int>(Ngt, 0));
 
 	for (int i = 0; i < gt.size(); i++) {
 		int frame = gt[i].frameId-1;
@@ -414,15 +415,24 @@ clearMotMexRes_t clearMotMex(std::vector<metrics::BoundingBox> gt, std::vector<m
 		m[t] = g[t] - c[t];
 	}
 
+	for (int i = 0; i < Fgt; i++) {
+		for (std::unordered_map<int, int>::iterator it = M[i].begin(); it != M[i].end(); it++) {
+			int j = it->first;
+			// std::cout<<i<<" "<<j<<" "<<M[i][j]<<std::endl;
+			alltracked[i][j] = M[i][j];
+		}
+
+	}
+
 	clearMotMexRes_t res;
 	res.allFalsePos = allfalsepos;
-	res.allTracked = M;
 	res.c = c;
 	res.d = d;
 	res.fp = fp;
 	res.g = g;
 	res.m = m;
 	res.mme = mme;
+	res.allTracked = alltracked;
 
 	return res;
 

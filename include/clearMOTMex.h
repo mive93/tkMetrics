@@ -20,8 +20,8 @@ struct clearMotMexRes_t{
 	std::vector<int> m; // misses = false negatives
 	std::vector<int> g; // gt count for each frame
 	std::vector<std::vector<double>> d; // all distances mapped to [0..1]
-	std::vector<std::unordered_map<int,int>> allTracked;
 	std::vector<std::vector<int>> allFalsePos;
+    std::vector<std::vector<int>> allTracked;
 };
 
 clearMotMexRes_t clearMotMex(std::vector<metrics::BoundingBox> gt, std::vector<metrics::BoundingBox> det, const float threshold, const bool world, bool verbose=false);

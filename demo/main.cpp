@@ -1,4 +1,5 @@
 #include <iostream>
+#include <set>
 #include "readData.h"
 #include "clearMOTMex.h"
 
@@ -8,7 +9,7 @@ int main(int argc, char *argv[]) {
 
     bool world = false;
     float threshold = 0.5;
-    auto gt = readMOTFormat("../data/gt.txt",',',true);
+    auto gt = readMOTFormat("../data/gt.txt",',', true);
     auto det = readMOTFormat("../data/MOT17-11-FRCNN.txt", ' ');
 
     auto res = clearMotMex(gt, det, threshold, world);
@@ -47,11 +48,15 @@ int main(int argc, char *argv[]) {
     float precision = 0;
     if(false_positives + matches > 0) precision = float(matches)/(matches + false_positives)*100;
 
-    int max_frame = 0;
+    int max_frame_gt = 0;
     for(const auto&g: gt)
-        if(g.frameId > max_frame) max_frame = g.frameId;
+        if(g.frameId > max_frame_gt) max_frame_gt = g.frameId;
 
-    float FAR= float(false_positives)/max_frame;
+    int max_frame_det = 0;
+    for(const auto&d: det)
+        if(d.frameId > max_frame_det) max_frame_det = d.frameId;
+
+    float FAR= float(false_positives)/max_frame_gt;
 
     std::cout<<" MOTP: "<< MOTP<<std::endl;
     std::cout<<" MOTA: "<< MOTA<<std::endl;
@@ -60,7 +65,57 @@ int main(int argc, char *argv[]) {
     std::cout<<" recall: "<< recall<<std::endl;
     std::cout<<" FAR: "<< FAR<<std::endl;
 
+    std::set<int> unique_gt_track_ID;
+    int max_track_id = 0;
+    for(const auto& g:gt){
+        unique_gt_track_ID.insert(g.trackId);
+        if(g.trackId > max_track_id) 
+            max_track_id = g.trackId;
+    }
+
+    int Ngt = unique_gt_track_ID.size();
+
+    int MT = 0;
+    int PT = 0;
+    int ML = 0;
+    
+    for(int i=1; i<= max_track_id; ++i){
+        std::vector<int> gt_frames;
+        for(const auto &g:gt)
+            if(g.trackId == i) 
+                gt_frames.push_back(g.frameId);
+
+        if(gt_frames.size()){
+
+            float non_negative = 0;
+            for(const auto& gf: gt_frames)
+                if(res.allTracked[gf-1][i-1] > 0) non_negative++;
+
+            if (non_negative/float(gt_frames.size()) < 0.2)
+                ML++;
+            else if (max_frame_det>= gt_frames[gt_frames.size()-1] && non_negative/float(gt_frames.size()) <= 0.8)
+                PT++;
+            else if (non_negative/float(gt_frames.size()) >= 0.8)
+                MT++;
+
+        }
+    }
+
+    std::cout<<" ML: "<< ML<<std::endl;
+    std::cout<<" PT: "<< PT<<std::endl;
+    std::cout<<" MT: "<< MT<<std::endl;
 
 
+
+    // int FRA = 0;
+    // for(int i=1; i< Ngt; ++i){
+    // }
+
+
+    // for i=1:Ngt
+    //     b=alltracked(find(alltracked(:,i),1,'first'):find(alltracked(:,i),1,'last'),i);
+    //     b(~~b)=1;
+    //     fr(i)=numel(find(diff(b)==-1));
+    
 	
 }
