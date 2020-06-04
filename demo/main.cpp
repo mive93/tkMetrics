@@ -8,8 +8,8 @@ int main(int argc, char *argv[]) {
 
     bool world = false;
     float threshold = 0.5;
-    auto gt = readMOTFormat("/home/micaela/repos/mot-metric/MOT17Labels/train/MOT17-11-FRCNN/gt/gt.txt",',',true);
-    auto det = readMOTFormat("/home/micaela/repos/mot-metric/res/MOT17/data/MOT17-11-FRCNN.txt", ' ');
+    auto gt = readMOTFormat("../data/gt.txt",',',true);
+    auto det = readMOTFormat("../data/MOT17-11-FRCNN.txt", ' ');
 
     auto res = clearMotMex(gt, det, threshold, world);
 
