@@ -91,58 +91,11 @@ float computeFRA(const clearMotMexRes_t& res){
     return FRA;
 }
 
-void computeTrackingMetrics(std::vector<metrics::BoundingBox> gt, std::vector<metrics::BoundingBox> det, const float threshold, const bool world, bool verbose=false){
-
-    auto res = clearMotMex(gt, det, threshold, world);
-
-    int max_frame_gt = 0;
-    for(const auto&g: gt)
-        if(g.frameId > max_frame_gt) max_frame_gt = g.frameId;
-
-    int max_frame_det = 0;
-    for(const auto&d: det)
-        if(d.frameId > max_frame_det) max_frame_det = d.frameId;
-
-	int missed          = std::accumulate(res.m.begin(), res.m.end(), 0);
-    int false_positives = std::accumulate(res.fp.begin(), res.fp.end(), 0);
-    int id_switches     = std::accumulate(res.mme.begin(), res.mme.end(), 0);
-    int matches         = std::accumulate(res.c.begin(), res.c.end(), 0);
-    int gt_count        = std::accumulate(res.g.begin(), res.g.end(), 0);
-
-    // std::cout<<"sum(m) "<<missed<<std::endl;
-    // std::cout<<"sum(fp) "<<false_positives<<std::endl;
-    // std::cout<<"sum(mme) "<<id_switches<<std::endl;
-    // std::cout<<"sum(c) "<<matches<<std::endl;
-    // std::cout<<"sum(g) "<<gt_count<<std::endl;
-
-    double tot_dist = 0;
-    for(const auto& d:res.d)
-        tot_dist+= std::accumulate(d.begin(), d.end(), 0.);
-    
-
-    // std::cout<<tot_dist<<std::endl;
-
-    int ML, PT, MT;
-    float MOTP = computeMOTP(matches, tot_dist, threshold, world);
-    float MOTAL = computeMOTAL(missed, false_positives, id_switches, gt_count);
-    float MOTA = computeMOTA(missed, false_positives, id_switches, gt_count);
-    float precision = computePrecision(matches, false_positives);
-    float recall = computeRecall(matches, gt_count);
-    float FAR= computeFAR(false_positives, max_frame_gt);
-    computeMLPTMT(res, gt, max_frame_det, MT, PT, ML);
-    float FRA = computeFRA(res);
-
-    res.FRA = FRA;
-    res.ML = ML;
-    res.MT = MT;
-    res.PT = PT;
-    res.threshold = threshold;
-    
-    
-    
+void computeintIDTPFPFN(const std::vector<metrics::BoundingBox>& gt, const std::vector<metrics::BoundingBox>& det,  const float threshold, const bool world, int& IDTP,int& IDFP,int& IDFN, int& GT){
     std::set<int> gt_unique_gt_track_ID;
     for(const auto& g:gt)
         gt_unique_gt_track_ID.insert(g.trackId);
+    GT = gt_unique_gt_track_ID.size();
     
     // for(auto u:gt_unique_gt_track_ID)
     //     std::cout<<u<<" ";
@@ -181,7 +134,7 @@ void computeTrackingMetrics(std::vector<metrics::BoundingBox> gt, std::vector<me
     //initialize cost
     double INF = 1e9;
     int cost_size = det_unique_gt_track_ID.size() + gt_unique_gt_track_ID.size();
-    std::cout<<cost_size<<std::endl;
+    // std::cout<<cost_size<<std::endl;
     std::vector<std::vector<double>> cost (cost_size, std::vector<double>(cost_size, 0));
     for(int i=0; i< cost_size; ++i){
         if(i < gt_unique_gt_track_ID.size())
@@ -232,7 +185,7 @@ void computeTrackingMetrics(std::vector<metrics::BoundingBox> gt, std::vector<me
     std::vector<std::vector<double>> optimal_match;
     applyMinCostMatching(cost, optimal_match, total_cost );
 
-    std::cout<<total_cost<<std::endl;
+    // std::cout<<total_cost<<std::endl;
     
     // for(auto c_r:optimal_match){
     //     for(auto c_v: c_r)
@@ -254,39 +207,84 @@ void computeTrackingMetrics(std::vector<metrics::BoundingBox> gt, std::vector<me
     // std::cout<<std::endl;
 
 
-    int IDFP = 0;
-    int IDFN = 0;
+    IDFP = 0;
+    IDFN = 0;
 
     for(int i=0; i<assignment.size(); ++i){
         IDFP = IDFP + fp[i][assignment[i]];
         IDFN = IDFN + fn[i][assignment[i]];
     }
 
-    int IDTP = gt.size() - IDFN;
+    IDTP = gt.size() - IDFN;
     assert(IDTP == det.size() - IDFP);
 
-    float IDPrecision = 0;
-    if(IDTP + IDFP > 0) 
-        IDPrecision =  float(IDTP) / (IDTP + IDFP);
-    float IDRecall = float(IDTP) / (IDTP + IDFN);
-    float IDF1 = 2.*float(IDTP)/(gt.size() + det.size());
+}
 
-    float IDP = IDPrecision * 100;
-    float IDR = IDRecall * 100;
-    IDF1 = IDF1 * 100;
+float computeIDF1(const int true_positive, const int gt_size, const int dt_size){
+   return 2.*float(true_positive)/(gt_size + dt_size);
+}
+ 
 
 
-    float GT = 0,FP = 0,FN = 0,ID = 0,FM = 0;
+
+void computeTrackingMetrics(std::vector<metrics::BoundingBox> gt, std::vector<metrics::BoundingBox> det, const float threshold, const bool world, bool verbose=false){
+
+    auto res = clearMotMex(gt, det, threshold, world);
+
+    int max_frame_gt = 0;
+    for(const auto&g: gt)
+        if(g.frameId > max_frame_gt) max_frame_gt = g.frameId;
+
+    int max_frame_det = 0;
+    for(const auto&d: det)
+        if(d.frameId > max_frame_det) max_frame_det = d.frameId;
+
+	int missed          = std::accumulate(res.m.begin(), res.m.end(), 0);
+    int false_positives = std::accumulate(res.fp.begin(), res.fp.end(), 0);
+    int id_switches     = std::accumulate(res.mme.begin(), res.mme.end(), 0);
+    int matches         = std::accumulate(res.c.begin(), res.c.end(), 0);
+    int gt_count        = std::accumulate(res.g.begin(), res.g.end(), 0);
+
+    // std::cout<<"sum(m) "<<missed<<std::endl;
+    // std::cout<<"sum(fp) "<<false_positives<<std::endl;
+    // std::cout<<"sum(mme) "<<id_switches<<std::endl;
+    // std::cout<<"sum(c) "<<matches<<std::endl;
+    // std::cout<<"sum(g) "<<gt_count<<std::endl;
+
+    double tot_dist = 0;
+    for(const auto& d:res.d)
+        tot_dist+= std::accumulate(d.begin(), d.end(), 0.);
+    
+
+    // std::cout<<tot_dist<<std::endl;
+
+    int ML, PT, MT;
+    float MOTP  = computeMOTP(matches, tot_dist, threshold, world);
+    float MOTAL = computeMOTAL(missed, false_positives, id_switches, gt_count);
+    float MOTA  = computeMOTA(missed, false_positives, id_switches, gt_count);
+    float prcn  = computePrecision(matches, false_positives);
+    float rcll  = computeRecall(matches, gt_count);
+    float FAR   = computeFAR(false_positives, max_frame_gt);
+    float FRA   = computeFRA(res);
+    computeMLPTMT(res, gt, max_frame_det, MT, PT, ML);
+
+    int IDFP, IDFN, IDTP, GT;
+    computeintIDTPFPFN(gt, det, threshold, world, IDTP, IDFP, IDFN, GT);
+
+    float IDP   = computePrecision(IDTP, IDFP);
+    float IDR   = computeRecall(IDTP, IDTP+IDFN);
+    float IDF1  = computeIDF1(IDTP,gt.size(), det.size()) * 100;
+
 
     if(true){
 
-        std::cout<< "IDF1\tIDP\tIDR|\tRcll\tPrcn\tFAR|\tGT\tMT\tPT\tML|\tFP\tFN\tID\tFM|\tMOTA\tMOTP\tMOTAL"<<std::endl;
+        std::cout<< "IDF1\tIDP\tIDR|\tRcll\tPrcn\tFAR|\tGT\tMT\tPT\tML|\tFP\tFN\tIDs\tFM|\tMOTA\tMOTP\tMOTAL"<<std::endl;
 
         std::cout<< std::fixed  << std::setprecision(2)
                     <<IDF1<<"\t"<<IDP<<"\t"<<IDR<<"\t"
-                    <<recall<<"\t"<<precision<<"\t"<<FAR<<"\t"
+                    <<rcll<<"\t"<<prcn<<"\t"<<FAR<<"\t"
                     <<GT<<"\t"<<MT<<"\t"<<PT<<"\t"<<ML<<"\t"
-                    <<FP<<"\t"<<FN<<"\t"<<ID<<"\t"<<FM<<"\t"
+                    <<false_positives<<"\t"<<missed<<"\t"<<id_switches<<"\t"<<FRA<<"\t"
                     <<MOTA<<"\t"<<MOTP<<"\t"<<MOTAL<<std::endl;
 
     }
