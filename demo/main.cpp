@@ -29,13 +29,17 @@ int main(int argc, char *argv[]) {
     std::vector<std::string> files;
     readDirectory(det_folder, files);
 
+    std::vector<trackingMetrics_t> results;
     for(const auto& f:files){
         std::string gt_test_folder = f.substr(0, f.find(".txt"));
         std::cout<<gt_test_folder<<std::endl;
         auto gt = readMOTFormat(gt_folder + gt_test_folder + "/gt/gt.txt",',', true);
         auto det = readMOTFormat(det_folder + f, ' ');
-        computeTrackingMetrics(gt, det, threshold, false);
+        results.push_back(computeTrackingMetrics(gt, det, threshold, false));
     }
+
+    std::cout<<"Total evaluation: "<<std::endl;
+    evaluateBenchmark(results);
 
     return EXIT_SUCCESS;
 

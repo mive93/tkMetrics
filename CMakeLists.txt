@@ -12,7 +12,7 @@ include_directories(${EIGEN3_INCLUDE_DIR})
 #-------------------------------------------------------------------------------
 # Build libraries
 #-------------------------------------------------------------------------------
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include/tkMetrics)
 
 file(GLOB metrics-SRC "src/*.cpp")
 #set(metrics-LIBS)
