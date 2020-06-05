@@ -273,9 +273,16 @@ struct trackingMetrics_t{
 
 trackingMetrics_t computeTrackingMetrics(std::vector<metrics::BoundingBox> gt, std::vector<metrics::BoundingBox> det, const float threshold, const bool world, bool verbose=false){
 
-    auto res = clearMotMex(gt, det, threshold, world);
+    trackingMetrics_t metrics;
+    metrics.numGt       = gt.size();
+    metrics.numDet      = det.size();
+    metrics.threshold   = threshold;
+    metrics.world       = world;
 
-    
+    //compute clear mot metrics
+    auto res    = clearMotMex(gt, det, threshold, world);
+    metrics.Ngt = res.Ngt;
+    metrics.Fgt = res.Fgt;
 
     int max_frame_gt = 0;
     for(const auto&g: gt)
@@ -285,73 +292,30 @@ trackingMetrics_t computeTrackingMetrics(std::vector<metrics::BoundingBox> gt, s
     for(const auto&d: det)
         if(d.frameId > max_frame_det) max_frame_det = d.frameId;
 
-	int missed          = std::accumulate(res.m.begin(), res.m.end(), 0);
-    int false_positives = std::accumulate(res.fp.begin(), res.fp.end(), 0);
-    int id_switches     = std::accumulate(res.mme.begin(), res.mme.end(), 0);
-    int matches         = std::accumulate(res.c.begin(), res.c.end(), 0);
-    int gt_count        = std::accumulate(res.g.begin(), res.g.end(), 0);
+	metrics.FN          = std::accumulate(res.m.begin(), res.m.end(), 0);
+    metrics.FP          = std::accumulate(res.fp.begin(), res.fp.end(), 0);
+    metrics.IDs         = std::accumulate(res.mme.begin(), res.mme.end(), 0);
+    metrics.TP          = std::accumulate(res.c.begin(), res.c.end(), 0);
+    metrics.gt_count    = std::accumulate(res.g.begin(), res.g.end(), 0);
 
-    // std::cout<<"sum(m) "<<missed<<std::endl;
-    // std::cout<<"sum(fp) "<<false_positives<<std::endl;
-    // std::cout<<"sum(mme) "<<id_switches<<std::endl;
-    // std::cout<<"sum(c) "<<matches<<std::endl;
-    // std::cout<<"sum(g) "<<gt_count<<std::endl;
-
-    double tot_dist = 0;
     for(const auto& d:res.d)
-        tot_dist+= std::accumulate(d.begin(), d.end(), 0.);
+        metrics.tot_dist+= std::accumulate(d.begin(), d.end(), 0.);
     
+    metrics.MOTP  = computeMOTP(metrics.TP, metrics.tot_dist, threshold, world);
+    metrics.MOTAL = computeMOTAL(metrics.FN, metrics.FP, metrics.IDs, metrics.gt_count);
+    metrics.MOTA  = computeMOTA(metrics.FN, metrics.FP, metrics.IDs, metrics.gt_count);
+    metrics.prcn  = computePrecision(metrics.TP, metrics.FP);
+    metrics.rcll  = computeRecall(metrics.TP, metrics.gt_count);
+    metrics.FAR   = computeFAR(metrics.FP, metrics.Fgt);
+    metrics.FRA   = computeFRA(res);
 
-    // std::cout<<tot_dist<<std::endl;
+    computeMLPTMT(res, gt, max_frame_det, metrics.MT, metrics.PT, metrics.ML);
 
-    int ML, PT, MT;
-    float MOTP  = computeMOTP(matches, tot_dist, threshold, world);
-    float MOTAL = computeMOTAL(missed, false_positives, id_switches, gt_count);
-    float MOTA  = computeMOTA(missed, false_positives, id_switches, gt_count);
-    float prcn  = computePrecision(matches, false_positives);
-    float rcll  = computeRecall(matches, gt_count);
-    float FAR   = computeFAR(false_positives, max_frame_gt);
-    int FRA   = computeFRA(res);
-    computeMLPTMT(res, gt, max_frame_det, MT, PT, ML);
+    computeintIDTPFPFN(gt, det, threshold, world, metrics.IDTP, metrics.IDFP, metrics.IDFN, metrics.GT);
 
-    int IDFP, IDFN, IDTP, GT;
-    computeintIDTPFPFN(gt, det, threshold, world, IDTP, IDFP, IDFN, GT);
-
-    float IDP   = computePrecision(IDTP, IDFP);
-    float IDR   = computeRecall(IDTP, IDTP+IDFN);
-    float IDF1  = computeIDF1(IDTP,gt.size(), det.size());
-
-    //fill result
-
-    trackingMetrics_t metrics;
-    metrics.IDF1 = IDF1;
-    metrics.IDprcn = IDP;
-    metrics.IDrcll = IDR;
-    metrics.IDs = id_switches;
-    metrics.ML = ML;
-    metrics.MOTA = MOTA;
-    metrics.MOTAL = MOTAL;
-    metrics.MOTP = MOTP;
-    metrics.MT = MT;
-    metrics.prcn = prcn;
-    metrics.PT = PT;
-    metrics.rcll = rcll;
-    metrics.GT = GT;
-    metrics.FP = false_positives;
-    metrics.FN = missed;
-    metrics.IDFN = IDFN;
-    metrics.IDFP = IDFP;
-    metrics.IDTP = IDTP;
-    metrics.FRA = FRA;
-    metrics.numGt = gt.size();
-    metrics.numDet = det.size();
-    metrics.Ngt = res.Ngt;
-    metrics.Fgt = res.Fgt;
-    metrics.TP = matches;
-    metrics.gt_count = gt_count;
-    metrics.tot_dist = tot_dist;
-    metrics.threshold = threshold;
-    metrics.world = world;
+    metrics.IDprcn  = computePrecision(metrics.IDTP, metrics.IDFP);
+    metrics.IDrcll  = computeRecall(metrics.IDTP, metrics.IDTP+metrics.IDFN);
+    metrics.IDF1    = computeIDF1(metrics.IDTP,metrics.numGt, metrics.numDet);
 
     metrics.printMetrics();
     return metrics;
