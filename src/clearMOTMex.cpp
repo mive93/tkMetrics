@@ -433,6 +433,8 @@ clearMotMexRes_t clearMotMex(std::vector<metrics::BoundingBox> gt, std::vector<m
 	res.m = m;
 	res.mme = mme;
 	res.allTracked = alltracked;
+	res.Fgt = Fgt;
+	res.Ngt = Ngt;
 
 	return res;
 

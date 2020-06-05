@@ -36,9 +36,9 @@ std::vector<metrics::BoundingBox> readMOTFormat(const std::string& gt_file, cons
             data.push_back(b);
     } 
 
-    std::cout<<data.size()<<" data read"<<std::endl;
-    for(int i=0; i<20; ++i)
-        std::cout<<data[i]<<std::endl;
+    // std::cout<<data.size()<<" data read"<<std::endl;
+    // for(int i=0; i<20; ++i)
+    //     std::cout<<data[i]<<std::endl;
     return data;
 }
 

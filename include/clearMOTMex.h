@@ -22,6 +22,14 @@ struct clearMotMexRes_t{
 	std::vector<std::vector<double>> d; // all distances mapped to [0..1]
 	std::vector<std::vector<int>> allFalsePos;
     std::vector<std::vector<int>> allTracked;
+
+	int MT = 0;
+    int PT = 0;
+    int ML = 0;
+	int FRA = 0;
+	float threshold = 0;
+	int Fgt = 0;
+	int Ngt = 0;
 };
 
 clearMotMexRes_t clearMotMex(std::vector<metrics::BoundingBox> gt, std::vector<metrics::BoundingBox> det, const float threshold, const bool world, bool verbose=false);
