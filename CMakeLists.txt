@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 project(metrics CXX)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 ")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 ")
 
 #-------------------------------------------------------------------------------
 # External Libraries
@@ -18,7 +18,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include
 file(GLOB metrics-SRC "src/*.cpp")
 #set(metrics-LIBS)
 add_library(metrics SHARED ${metrics-SRC})
-target_link_libraries(metrics ${metrics-LIBS} /usr/local/MATLAB/R2018b/bin/glnxa64/libmex.so)
+target_link_libraries(metrics ${metrics-LIBS} /usr/local/MATLAB/R2018b/bin/glnxa64/libmex.so )
 
 #-------------------------------------------------------------------------------
 # Build executables
