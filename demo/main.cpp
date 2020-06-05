@@ -107,15 +107,23 @@ int main(int argc, char *argv[]) {
 
 
 
-    // int FRA = 0;
-    // for(int i=1; i< Ngt; ++i){
-    // }
+    //find fragmented tracks 
+    int FRA = 0;
+    for(int i=0; i< max_track_id; ++i){
+        
+        int first_non_null = 0;
+        while(first_non_null < res.allTracked.size() && !res.allTracked[first_non_null][i])    
+            first_non_null++;
+        if(first_non_null < res.allTracked.size()){
+            int prev = res.allTracked[first_non_null][i];
+            for(int j=first_non_null; j< res.allTracked.size();++j){
+                if(res.allTracked[j][i] != 0 && res.allTracked[j][i] != prev && prev == 0)
+                    FRA++;
+                prev = res.allTracked[j][i];
+            }
+        }
+    }
 
+    std::cout<<" FRA: "<< FRA<<std::endl;
 
-    // for i=1:Ngt
-    //     b=alltracked(find(alltracked(:,i),1,'first'):find(alltracked(:,i),1,'last'),i);
-    //     b(~~b)=1;
-    //     fr(i)=numel(find(diff(b)==-1));
-    
-	
 }
