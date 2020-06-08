@@ -7,6 +7,8 @@
 #include <string>
 #include <sstream>
 
+#include <yaml-cpp/yaml.h>
+
 std::vector<tk::metrics::BoundingBox> readMOTFormat(const std::string& gt_file, const char del=',', const bool groundtruth=false){
 
     std::string line;
@@ -40,6 +42,36 @@ std::vector<tk::metrics::BoundingBox> readMOTFormat(const std::string& gt_file, 
     // for(int i=0; i<20; ++i)
     //     std::cout<<data[i]<<std::endl;
     return data;
+}
+
+void readYoloFormat(const std::string& filename, std::vector<tk::metrics::BoundingBox> & boxes, const bool groundtruth=false){
+    std::ifstream labels(filename);
+    for(std::string line; std::getline(labels, line); ){
+        std::istringstream in(line); 
+        tk::metrics::BoundingBox b;
+        in >> b.cl; 
+        if(groundtruth){
+            b.prob = 1;
+            b.truthFlag = 1;
+        }
+        else
+            in >> b.prob;
+        in >> b.x >> b.y >> b.w >> b.h;  
+        boxes.push_back(b);
+    }
+}
+
+void readmAPParams( std::string config_filename, int& classes, int& map_points, 
+                    int& map_levels, float& map_step, float& IoU_thresh, 
+                    float& conf_thresh, bool& verbose){
+    YAML::Node config   = YAML::LoadFile(config_filename);
+    classes     = config["classes"].as<int>();
+    map_points  = config["map_points"].as<int>();
+    map_levels  = config["map_levels"].as<int>();
+    map_step    = config["map_step"].as<float>();
+    IoU_thresh  = config["IoU_thresh"].as<float>();
+    conf_thresh = config["conf_thresh"].as<float>();
+    verbose     = config["verbose"].as<bool>();
 }
 
 #endif /* READDATA_H */

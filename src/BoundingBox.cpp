@@ -3,15 +3,15 @@
 namespace tk { namespace metrics{
 
 float BoundingBox::overlap(const float p1, const float d1, const float p2, const float d2) const{
-    // float l1 = p1 - d1/2.;
-    // float l2 = p2 - d2/2.;
-    // float left = l1 > l2 ? l1 : l2;
-    // float r1 = p1 + d1/2.;
-    // float r2 = p2 + d2/2.;
-    // float right = r1 < r2 ? r1 : r2;
-    // return right - left;
+    float l1 = p1 - d1/2.;
+    float l2 = p2 - d2/2.;
+    float left = l1 > l2 ? l1 : l2;
+    float r1 = p1 + d1/2.;
+    float r2 = p2 + d2/2.;
+    float right = r1 < r2 ? r1 : r2;
+    return right - left;
 
-    return std::max(float(0.0), std::min(p1 + d1, p2 + d2) - std::max(p1, p2));
+    // return std::max(float(0.0), std::min(p1 + d1, p2 + d2) - std::max(p1, p2));
 }
 
 float BoundingBox::boxesIntersection(const BoundingBox &b) const{
@@ -57,6 +57,8 @@ std::ostream& operator<<(std::ostream& os, const BoundingBox& bb){
         << ", h: "<< bb.h 
         << ", cat: "<< bb.cl 
         << ", conf: "<< bb.prob
+        << ", xReal: "<< bb.xRealWorld
+        << ", yReal: "<< bb.yRealWorld
         << ", truth: "<< bb.truthFlag
         << ", assignedGT: "<< bb.uniqueTruthIndex
         << ", maxIoU: "<< bb.maxIoU;

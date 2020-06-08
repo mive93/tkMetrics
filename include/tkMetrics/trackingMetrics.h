@@ -75,6 +75,6 @@ tk::metrics::trackingMetrics_t computeTrackingMetrics(  std::vector<tk::metrics:
                                                         std::vector<tk::metrics::BoundingBox> det, 
                                                         const float threshold, const bool world, 
                                                         bool verbose=false);
-void    evaluateBenchmark(std::vector<tk::metrics::trackingMetrics_t> results);
+void    evaluateTrackingBenchmark(std::vector<tk::metrics::trackingMetrics_t> results);
 
 #endif /*TRACKING_METRICS_H*/

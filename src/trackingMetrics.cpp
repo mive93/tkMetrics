@@ -235,7 +235,7 @@ tk::metrics::trackingMetrics_t computeTrackingMetrics(std::vector<tk::metrics::B
     return metrics;
 }
 
-void evaluateBenchmark(std::vector<tk::metrics::trackingMetrics_t> results){
+void evaluateTrackingBenchmark(std::vector<tk::metrics::trackingMetrics_t> results){
 
     tk::metrics::trackingMetrics_t final_metrics;
 

@@ -1,23 +1,6 @@
-#include <iostream>
-#include <set>
 #include "readData.h"
 #include "trackingMetrics.h"
-
-#include <sys/types.h>
-#include <dirent.h>
-
-
-void readDirectory(const std::string& name, std::vector<std::string>& v)
-{
-    DIR* dirp = opendir(name.c_str());
-    struct dirent * dp;
-    while ((dp = readdir(dirp)) != NULL) {
-        std::string filename = dp->d_name;
-        if(filename != "." && filename != "..")
-            v.push_back(filename);
-    }
-    closedir(dirp);
-}
+#include "tkMetricsUtils.h"
 
 int main(int argc, char *argv[]) {
     bool world = false;
@@ -26,8 +9,7 @@ int main(int argc, char *argv[]) {
     std::string det_folder = "../data/dets/";
     std::string gt_folder = "../data/gt/";
 
-    std::vector<std::string> files;
-    readDirectory(det_folder, files);
+    std::vector<std::string> files= getDirectoryFiles(det_folder);
 
     std::vector<tk::metrics::trackingMetrics_t> results;
     for(const auto& f:files){
@@ -39,7 +21,7 @@ int main(int argc, char *argv[]) {
     }
 
     std::cout<<"Total evaluation: "<<std::endl;
-    evaluateBenchmark(results);
+    evaluateTrackingBenchmark(results);
 
     return EXIT_SUCCESS;
 
