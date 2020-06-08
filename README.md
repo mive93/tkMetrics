@@ -1,4 +1,4 @@
-# Metrics
+# tkMetrics
 
 tkMetrics is a library to compute the most common metrics for vision tasks (e.g. mAP, MOTA,...).
 
@@ -105,6 +105,8 @@ for the detections
 <class-id> <confidence> <x_center/image_width> <y_center/image_height> <bb_width/img_width> <bb_height/img_height>
 ```
 
-## Credits
+## License and credits
 
-For the tracking metrics the code from MOT Challenge dev-kit has been adapted (https://motchallenge.net/devkit/). The credits goes to Anton Milan (antmila@amazon.com) and Ergys Ristani (ristani@cs.duke.edu).
+<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-sa/3.0/88x31.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/">Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License</a>.
+
+For the tracking metrics the code from MOT Challenge dev-kit has been adapted (https://motchallenge.net/devkit/). The credits goes to Anton Milan (antmila@amazon.com) and Ergys Ristani (ristani@cs.duke.edu). 
