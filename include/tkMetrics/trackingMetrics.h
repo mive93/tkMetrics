@@ -270,6 +270,17 @@ struct trackingMetrics_t{
     }
 };
 
+void normalizeIds(std::vector<metrics::BoundingBox>& boxes){
+    std::map<int,int> unique_ids;
+    int index = 1;
+    for(const auto& b:boxes)
+        if (unique_ids.find(b.trackId) == unique_ids.end()) {
+            unique_ids[b.trackId] = index++;
+        }
+    for(auto& b:boxes)
+        b.trackId = unique_ids[b.trackId];
+}
+
 
 trackingMetrics_t computeTrackingMetrics(std::vector<metrics::BoundingBox> gt, std::vector<metrics::BoundingBox> det, const float threshold, const bool world, bool verbose=false){
 
@@ -278,6 +289,11 @@ trackingMetrics_t computeTrackingMetrics(std::vector<metrics::BoundingBox> gt, s
     metrics.numDet      = det.size();
     metrics.threshold   = threshold;
     metrics.world       = world;
+
+    //normalize ids
+
+    normalizeIds(gt);
+    normalizeIds(det);
 
     //compute clear mot metrics
     auto res    = clearMotMex(gt, det, threshold, world);
