@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
     std::vector<std::string> files;
     readDirectory(det_folder, files);
 
-    std::vector<trackingMetrics_t> results;
+    std::vector<tk::metrics::trackingMetrics_t> results;
     for(const auto& f:files){
         std::string gt_test_folder = f.substr(0, f.find(".txt"));
         std::cout<<gt_test_folder<<std::endl;

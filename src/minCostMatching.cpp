@@ -1,4 +1,4 @@
-#include "MinCostMatching.h"
+#include "minCostMatching.h"
 
 // Min cost bipartite matching via shortest augmenting paths
 //
@@ -141,10 +141,8 @@ void applyMinCostMatching( const std::vector<std::vector<double>>& cost, std::ve
 	MinCostMatching(alldist, Lmate, Rmate);
     
     total_cost = 0;
-    for (int i = 0; i < nOfRows; i++)
-    {
-		if (Lmate[i] < nOfColumns && alldist[i][Lmate[i]] != INF)
-		{
+    for (int i = 0; i < nOfRows; i++){
+		if (Lmate[i] < nOfColumns && alldist[i][Lmate[i]] != INF){
 			assignment[i][Lmate[i]] = 1;
 			total_cost += alldist[i][Lmate[i]];
 		}

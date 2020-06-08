@@ -1,29 +1,5 @@
 #include "clearMOTMex.h"
-
-inline int index(int i, int j, int numRows) // 2D 0-indexed to C
-{
-	return j*numRows + i;
-}
-
-inline double euclidean(double x1, double y1, double x2, double y2)
-{
-	return std::sqrt((x1 - x2)*(x1 - x2) + (y1 - y2)*(y1 - y2));
-}
-
-double boxiou(double l1, double t1, double w1, double h1, double l2, double t2, double w2, double h2)
-{
-	double area1 = w1 * h1;
-	double area2 = w2 * h2;
-
-	double x_overlap = std::max(0.0, std::min(l1 + w1, l2 + w2) - std::max(l1, l2));
-	double y_overlap = std::max(0.0, std::min(t1 + h1, t2 + h2) - std::max(t1, t2));
-	double intersectionArea = x_overlap*y_overlap;
-	double unionArea = area1 + area2 - intersectionArea;
-	double iou = intersectionArea / unionArea;
-	return iou;
-}
-
-// Min cost bipartite matching via shortest augmenting paths
+// Min cost bipartite matching std::vector<int>a shortest augmenting paths
 //
 // Code from https://github.com/jaehyunp/
 //
@@ -39,18 +15,12 @@ double boxiou(double l1, double t1, double w1, double h1, double l2, double t2, 
 // The values in cost[i][j] may be positive or negative.  To perform
 // maximization, simply negate the cost[][] matrix.
 
-
-
-typedef std::vector<double> VD;
-typedef std::vector<VD> VVD;
-typedef std::vector<int> VI;
-
-double MinCostMatchingClear(const VVD &cost, VI &Lmate, VI &Rmate) {
+double MinCostMatchingClear(const std::vector<std::vector<double>> &cost, std::vector<int> &Lmate, std::vector<int> &Rmate) {
 	int n = int(cost.size());
 
 	// construct dual feasible solution
-	VD u(n);
-	VD v(n);
+	std::vector<double> u(n);
+	std::vector<double> v(n);
 	for (int i = 0; i < n; i++) {
 		u[i] = cost[i][0];
 		for (int j = 1; j < n; j++) u[i] = std::min(u[i], cost[i][j]);
@@ -61,8 +31,8 @@ double MinCostMatchingClear(const VVD &cost, VI &Lmate, VI &Rmate) {
 	}
 
 	// construct primal solution satisfying complementary slackness
-	Lmate = VI(n, -1);
-	Rmate = VI(n, -1);
+	Lmate = std::vector<int>(n, -1);
+	Rmate = std::vector<int>(n, -1);
 	int mated = 0;
 	for (int i = 0; i < n; i++) {
 		for (int j = 0; j < n; j++) {
@@ -76,9 +46,9 @@ double MinCostMatchingClear(const VVD &cost, VI &Lmate, VI &Rmate) {
 		}
 	}
 
-	VD dist(n);
-	VI dad(n);
-	VI seen(n);
+	std::vector<double> dist(n);
+	std::vector<int> dad(n);
+	std::vector<int> seen(n);
 
 	// repeat until primal solution is feasible
 	while (mated < n) {
@@ -148,9 +118,7 @@ double MinCostMatchingClear(const VVD &cost, VI &Lmate, VI &Rmate) {
 	return value;
 }
 
-
-
-clearMotMexRes_t clearMotMex(std::vector<metrics::BoundingBox> gt, std::vector<metrics::BoundingBox> det, const float threshold, const bool world, bool verbose)
+clearMotMexRes_t clearMotMex(std::vector<tk::metrics::BoundingBox> gt, std::vector<tk::metrics::BoundingBox> det, const float threshold, const bool world, bool verbose)
 {
     
 	// data format: frame, ID, left, top, width, height, worldX, worldY
@@ -199,51 +167,29 @@ clearMotMexRes_t clearMotMex(std::vector<metrics::BoundingBox> gt, std::vector<m
 	}
 
 	
-	for (int t = 0; t < Fgt; t++)
-	{
-		//if ((t + 1) % 1000 == 0) mexEvalString("fprintf('.');");  // print every 1000th frame
-
-		if (t > 0)
-		{
+	for (int t = 0; t < Fgt; t++){
+		if (t > 0){
 			std::vector<int> mappings;
 			for (std::unordered_map<int,int>::iterator it = M[t - 1].begin(); it != M[t - 1].end(); it++) mappings.push_back(it->first);
 			sort(mappings.begin(), mappings.end());
-			for (int k = 0; k < mappings.size(); k++)
-			{
+			for (int k = 0; k < mappings.size(); k++){
 				std::unordered_map<int, int>::const_iterator foundGtind = gtInd[t].find(mappings[k]);
 				std::unordered_map<int, int>::const_iterator foundStind = stInd[t].find(M[t - 1][mappings[k]]);
 
-				if (foundGtind != gtInd[t].end() && foundStind != stInd[t].end())
-				{
+				if (foundGtind != gtInd[t].end() && foundStind != stInd[t].end()){
 					bool matched = false;
-					// if (world)
-					// {
-					// 	double gtx, gty, stx, sty;
-					// 	int rowgt = gtInd[t][mappings[k]];
-					// 	int rowres = stInd[t][M[t - 1][mappings[k]]];
-					// 	gtx = gtMat[index(rowgt, 6, gt.size())];
-					// 	gty = gtMat[index(rowgt, 7, gt.size())];
-					// 	stx = resMat[index(rowres, 6, rowsST)];
-					// 	sty = resMat[index(rowres, 7, rowsST)];
-					// 	double dist = euclidean(gtx, gty, stx, sty);
-					// 	matched = (dist <= threshold);
-					// }
-					// else
-					// {
-						double gtleft, gttop, gtwidth, gtheight, stleft, sttop, stwidth, stheight;
+					if (world){
 						int rowgt = gtInd[t][mappings[k]];
 						int rowres = stInd[t][M[t - 1][mappings[k]]];
-						gtleft = gt[rowgt].x;
-						gttop = gt[rowgt].y;
-						gtwidth = gt[rowgt].w;
-						gtheight = gt[rowgt].h;
-						stleft = det[rowres].x;
-						sttop = det[rowres].y;
-						stwidth = det[rowres].w;
-						stheight = det[rowres].h;
-						double dist = 1 - boxiou(gtleft, gttop, gtwidth, gtheight, stleft, sttop, stwidth, stheight);
+						double dist = det[rowres].euclidean(gt[rowgt]);
 						matched = (dist <= threshold);
-					// }
+					}
+					else{
+						int rowgt = gtInd[t][mappings[k]];
+						int rowres = stInd[t][M[t - 1][mappings[k]]];
+						double dist = 1 - det[rowres].IoU(gt[rowgt]);
+						matched = (dist <= threshold);
+					}
 
 					if (matched) {
 						M[t][mappings[k]] = M[t - 1][mappings[k]];
@@ -270,8 +216,7 @@ clearMotMexRes_t clearMotMex(std::vector<metrics::BoundingBox> gt, std::vector<m
 		int squareSize = std::max(unmappedGt.size(), unmappedEs.size());
 		std::vector<std::vector<double>> alldist(squareSize, std::vector<double>(squareSize, INF));
 
-		if (verbose)
-		{
+		if (verbose){
 			printf("%d: UnmappedGTs: ", t+1);
 			for (int i = 0; i < unmappedGt.size(); i++) printf("%d, ", unmappedGt[i]+1);
 			printf("\n%d: UnmappedEs: ", t+1);
@@ -280,52 +225,32 @@ clearMotMexRes_t clearMotMex(std::vector<metrics::BoundingBox> gt, std::vector<m
 		}
 
         int uid = 0; // Unique identifier
-		for (int i = 0; i < unmappedGt.size(); i++)
-		{
-			for (int j = 0; j < unmappedEs.size(); j++)
-			{
+		for (int i = 0; i < unmappedGt.size(); i++){
+			for (int j = 0; j < unmappedEs.size(); j++){
 				int o = unmappedGt[i];
 				int e = unmappedEs[j];
-				// if (world)
-				// {
-				// 	double gtx, gty, stx, sty;
-				// 	int rowgt = gtInd[t][o];
-				// 	int rowres = stInd[t][e];
-				// 	gtx = gtMat[index(rowgt, 6, gt.size())];
-				// 	gty = gtMat[index(rowgt, 7, gt.size())];
-				// 	stx = resMat[index(rowres, 6, rowsST)];
-				// 	sty = resMat[index(rowres, 7, rowsST)];
-				// 	double dist = euclidean(gtx, gty, stx, sty);
-				// 	if (dist <= threshold) 
-                //     {
-                //         alldist[i][j] = dist;
-                //         // Add unique identifier to break ties
-                //         alldist[i][j] += 1e-9 * uid;
-                //         uid++;
-                //     }
-				// }
-				// else
-				// {
-					double gtleft, gttop, gtwidth, gtheight, stleft, sttop, stwidth, stheight;
+				if (world){
 					int rowgt = gtInd[t][o];
 					int rowres = stInd[t][e];
-					gtleft = gt[rowgt].x;
-					gttop = gt[rowgt].y;
-					gtwidth = gt[rowgt].w;
-					gtheight = gt[rowgt].h;
-					stleft = det[rowres].x;
-					sttop = det[rowres].y;
-					stwidth = det[rowres].w;
-					stheight = det[rowres].h;
-					double dist = 1 - boxiou(gtleft, gttop, gtwidth, gtheight, stleft, sttop, stwidth, stheight);
-                    if (dist <= threshold) 
-                    {
+					double dist = det[rowres].euclidean(gt[rowgt]);
+					if (dist <= threshold) {
                         alldist[i][j] = dist;
                         // Add unique identifier to break ties
                         alldist[i][j] += 1e-9 * uid;
                         uid++;
                     }
-				// }
+				}
+				else{
+					int rowgt = gtInd[t][o];
+					int rowres = stInd[t][e];
+					double dist = 1 - det[rowres].IoU(gt[rowgt]);
+                    if (dist <= threshold) {
+                        alldist[i][j] = dist;
+                        // Add unique identifier to break ties
+                        alldist[i][j] += 1e-9 * uid;
+                        uid++;
+                    }
+				}
 			}
 		}
 
@@ -354,10 +279,8 @@ clearMotMexRes_t clearMotMex(std::vector<metrics::BoundingBox> gt, std::vector<m
 		for (int k = 0; k < falsepositives.size(); k++) allfalsepos[t][falsepositives[k]] = falsepositives[k];
 
 		//  mismatch errors
-		if (t > 0)
-		{
-			for (int k = 0; k < curtracked.size(); k++)
-			{
+		if (t > 0){
+			for (int k = 0; k < curtracked.size(); k++){
 				int ct = curtracked[k];
 				int lastnonempty = -1;
 				for (int j = t - 1; j >= 0; j--) {
@@ -365,8 +288,7 @@ clearMotMexRes_t clearMotMex(std::vector<metrics::BoundingBox> gt, std::vector<m
 						lastnonempty = j; break;
 					}
 				}
-				if (gtInd[t-1].find(ct)!=gtInd[t-1].end() && lastnonempty != -1)
-				{
+				if (gtInd[t-1].find(ct)!=gtInd[t-1].end() && lastnonempty != -1){
 					int mtct = -1, mlastnonemptyct = -1;
 					if (M[t].find(ct) != M[t].end()) mtct = M[t][ct];
 					if (M[lastnonempty].find(ct) != M[lastnonempty].end()) mlastnonemptyct = M[lastnonempty][ct];
@@ -378,36 +300,19 @@ clearMotMexRes_t clearMotMex(std::vector<metrics::BoundingBox> gt, std::vector<m
 		}
 
 		c[t] = curtracked.size();
-		for (int k = 0; k < curtracked.size(); k++)
-		{
+		for (int k = 0; k < curtracked.size(); k++){
 			int ct = curtracked[k];
 			int eid = M[t][ct];
-			// if (world)
-			// {
-			// 	double gtx, gty, stx, sty;
-			// 	int rowgt = gtInd[t][ct];
-			// 	int rowres = stInd[t][eid];
-			// 	gtx = gtMat[index(rowgt, 6, gt.size())];
-			// 	gty = gtMat[index(rowgt, 7, gt.size())];
-			// 	stx = resMat[index(rowres, 6, rowsST)];
-			// 	sty = resMat[index(rowres, 7, rowsST)];
-			// 	d[t][ct] = euclidean(gtx, gty, stx, sty);
-			// }
-			// else
-			// {
-				double gtleft, gttop, gtwidth, gtheight, stleft, sttop, stwidth, stheight;
+			if (world){
 				int rowgt = gtInd[t][ct];
 				int rowres = stInd[t][eid];
-				gtleft = gt[rowgt].x;
-				gttop = gt[rowgt].y;
-				gtwidth = gt[rowgt].w;
-				gtheight = gt[rowgt].h;
-				stleft = det[rowres].x;
-				sttop = det[rowres].y;
-				stwidth = det[rowres].w;
-				stheight = det[rowres].h;
-				d[t][ct] = 1 - boxiou(gtleft, gttop, gtwidth, gtheight, stleft, sttop, stwidth, stheight);
-			// }
+				d[t][ct] = det[rowres].euclidean(gt[rowgt]);
+			}
+			else{
+				int rowgt = gtInd[t][ct];
+				int rowres = stInd[t][eid];
+				d[t][ct] = 1 - det[rowres].IoU(gt[rowgt]);
+			}
 		}
 
 		for (std::unordered_map<int,int>::iterator it = stInd[t].begin(); it != stInd[t].end(); it++) fp[t]++;
@@ -418,10 +323,8 @@ clearMotMexRes_t clearMotMex(std::vector<metrics::BoundingBox> gt, std::vector<m
 	for (int i = 0; i < Fgt; i++) {
 		for (std::unordered_map<int, int>::iterator it = M[i].begin(); it != M[i].end(); it++) {
 			int j = it->first;
-			// std::cout<<i<<" "<<j<<" "<<M[i][j]<<std::endl;
 			alltracked[i][j] = M[i][j];
 		}
-
 	}
 
 	clearMotMexRes_t res;
@@ -437,5 +340,4 @@ clearMotMexRes_t clearMotMex(std::vector<metrics::BoundingBox> gt, std::vector<m
 	res.Ngt = Ngt;
 
 	return res;
-
 }

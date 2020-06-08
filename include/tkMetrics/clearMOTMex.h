@@ -32,6 +32,6 @@ struct clearMotMexRes_t{
 	int Ngt = 0;
 };
 
-clearMotMexRes_t clearMotMex(std::vector<metrics::BoundingBox> gt, std::vector<metrics::BoundingBox> det, const float threshold, const bool world, bool verbose=false);
+clearMotMexRes_t clearMotMex(std::vector<tk::metrics::BoundingBox> gt, std::vector<tk::metrics::BoundingBox> det, const float threshold, const bool world, bool verbose=false);
 
 #endif /* CLEARMOTMEX_H */
