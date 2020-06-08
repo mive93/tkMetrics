@@ -28,8 +28,17 @@ int main(int argc, char *argv[])
     std::string labels_path = "../data/BDD100K_val/all_images.txt";
     std::string det_folder = "../data/det/";
     std::string config_filename = "../data/config.yaml";
-
     bool show = false;
+
+    if(argc > 1)
+        labels_path = argv[1]; 
+    if(argc > 2)
+        det_folder = argv[2]; 
+    if(argc > 3)
+        config_filename = argv[3];
+    if(argc > 4)
+        show = atoi(argv[4]);
+
     bool write_res_on_file = true;
     int n_images = 5000;
 
