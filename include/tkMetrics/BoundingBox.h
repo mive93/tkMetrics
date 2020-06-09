@@ -32,6 +32,7 @@ class BoundingBox
     
 
     float IoU(const BoundingBox &b) const;
+    double IoUtracker(const BoundingBox &b) const;
     float euclidean(const BoundingBox &b) const;
     void clear();
 

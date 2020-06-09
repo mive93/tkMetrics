@@ -187,7 +187,7 @@ clearMotMexRes_t clearMotMex(std::vector<tk::metrics::BoundingBox> gt, std::vect
 					else{
 						int rowgt = gtInd[t][mappings[k]];
 						int rowres = stInd[t][M[t - 1][mappings[k]]];
-						double dist = 1 - det[rowres].IoU(gt[rowgt]);
+						double dist = 1 - det[rowres].IoUtracker(gt[rowgt]);
 						matched = (dist <= threshold);
 					}
 
@@ -243,7 +243,7 @@ clearMotMexRes_t clearMotMex(std::vector<tk::metrics::BoundingBox> gt, std::vect
 				else{
 					int rowgt = gtInd[t][o];
 					int rowres = stInd[t][e];
-					double dist = 1 - det[rowres].IoU(gt[rowgt]);
+					double dist = 1 - det[rowres].IoUtracker(gt[rowgt]);
                     if (dist <= threshold) {
                         alldist[i][j] = dist;
                         // Add unique identifier to break ties
@@ -311,7 +311,7 @@ clearMotMexRes_t clearMotMex(std::vector<tk::metrics::BoundingBox> gt, std::vect
 			else{
 				int rowgt = gtInd[t][ct];
 				int rowres = stInd[t][eid];
-				d[t][ct] = 1 - det[rowres].IoU(gt[rowgt]);
+				d[t][ct] = 1 - det[rowres].IoUtracker(gt[rowgt]);
 			}
 		}
 

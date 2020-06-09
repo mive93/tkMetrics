@@ -34,7 +34,7 @@ void computeDistances(const std::vector<tk::metrics::BoundingBox>& tr1, const st
 			if (position[i] == -1)
 				distance[i] = 0;
 			else
-				distance[i] =  tr1[i].IoU(tr2[position[i]]);
+				distance[i] =  tr1[i].IoUtracker(tr2[position[i]]);
 		}
 	}
 }

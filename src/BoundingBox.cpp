@@ -10,8 +10,6 @@ float BoundingBox::overlap(const float p1, const float d1, const float p2, const
     float r2 = p2 + d2/2.;
     float right = r1 < r2 ? r1 : r2;
     return right - left;
-
-    // return std::max(float(0.0), std::min(p1 + d1, p2 + d2) - std::max(p1, p2));
 }
 
 float BoundingBox::boxesIntersection(const BoundingBox &b) const{
@@ -35,6 +33,18 @@ float BoundingBox::IoU(const BoundingBox &b) const{
     if (I == 0 || U == 0) 
         return 0;
     return I / U;
+}
+
+double BoundingBox::IoUtracker(const BoundingBox &b) const {
+    double area1 = w * h;
+	double area2 = b.w * b.h;
+
+	double x_overlap = std::max(float(0.0), std::min(x + w, b.x + b.w) - std::max(x, b.x));
+	double y_overlap = std::max(float(0.0), std::min(y + h, b.y + b.h) - std::max(y, b.y));
+	double intersectionArea = x_overlap*y_overlap;
+	double unionArea = area1 + area2 - intersectionArea;
+	double iou = intersectionArea / unionArea;
+	return iou;
 }
 
 float BoundingBox::euclidean(const BoundingBox &b) const{
