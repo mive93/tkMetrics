@@ -1,5 +1,5 @@
-#ifndef BOUNDINGBOX_H
-#define BOUNDINGBOX_H
+#ifndef TKMETRICSBOUNDINGBOX_H
+#define TKMETRICSBOUNDINGBOX_H
 
 #include <iostream>
 #include <cmath>
@@ -43,5 +43,5 @@ std::ostream& operator<<(std::ostream& os, const BoundingBox& bb);
 bool boxComparison (const BoundingBox& a,const BoundingBox& b) ;
 
 }}
-#endif /*BOUNDINGBOX_H*/
+#endif /*TKMETRICSBOUNDINGBOX_H*/
 
